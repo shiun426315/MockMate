@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MockMate — AI 語音模擬面試，練習後取得具體回饋</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #F5F6F8;
+    --bg-card:   #FFFFFF;
+    --bg-subtle: #EEF1F5;
+    --navy:      #1C2B45;
+    --navy-mid:  #2D4166;
+    --steel:     #5B82A6;
+    --steel-lt:  #7BA3C4;
+    --steel-bg:  #EDF3F8;
+    --steel-bd:  #B8D0E6;
+    --slate:     #6B7A90;
+    --muted:     #9AA3B0;
+    --border:    #DDE2EA;
+    --text:      #1C2B45;
+    --text-sub:  #5A6778;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 4rem;
+    background: rgba(255,255,255,0.92);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.02em;
+  }
+  .logo span { color: var(--steel); font-weight: 400; }
+
+  nav a {
+    font-size: 0.85rem;
+    color: var(--slate);
+    text-decoration: none;
+    margin-left: 2rem;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--steel); }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    background: var(--steel);
+    color: #fff;
+    font-family: 'Sora', sans-serif;
+    font-weight: 500;
+    font-size: 0.88rem;
+    padding: 0.7rem 1.6rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-primary:hover { background: var(--steel-lt); transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--slate);
+    font-family: 'Sora', sans-serif;
+    font-size: 0.88rem;
+    padding: 0.7rem 1.4rem;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .btn-ghost:hover { color: var(--navy); border-color: #aab0be; }
+
+  /* ── HERO ── */
+  .hero {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 5.5rem 4rem 5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--steel);
+    margin-bottom: 1.1rem;
+  }
+
+  .hero h1 {
+    font-family: 'Sora', sans-serif;
+    font-size: 2.75rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--navy);
+    letter-spacing: -0.025em;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--steel);
+  }
+
+  .hero-sub {
+    font-size: 1rem;
+    color: var(--text-sub);
+    line-height: 1.8;
+    margin-bottom: 2.25rem;
+    font-weight: 300;
+  }
+
+  .cta-group {
+    display: flex;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* ── FEEDBACK PANEL (hero right) ── */
+  .feedback-preview {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 24px rgba(28,43,69,0.07);
+  }
+
+  .preview-topbar {
+    background: var(--bg-subtle);
+    border-bottom: 1px solid var(--border);
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+  .preview-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .preview-dot:nth-child(1) { background: #E05252; }
+  .preview-dot:nth-child(2) { background: #E0A832; }
+  .preview-dot:nth-child(3) { background: #44C76A; }
+  .preview-title-bar {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-left: 0.4rem;
+  }
+
+  .feedback-body {
+    padding: 1.1rem 1.2rem 1.3rem;
+  }
+
+  .feedback-header {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.95rem;
+  }
+
+  .score-row-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .score-label-text {
+    font-size: 0.68rem;
+    color: var(--steel);
+    width: 80px;
+    flex-shrink: 0;
+    font-weight: 500;
+    padding-top: 0.05rem;
+  }
+
+  .score-comment {
+    flex: 1;
+    font-size: 0.68rem;
+    color: var(--text-sub);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  .feedback-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0.85rem 0;
+  }
+
+  .feedback-tag-row {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 0.6rem;
+  }
+
+  .strength-tag {
+    font-size: 0.65rem;
+    font-family: 'Sora', sans-serif;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    background: var(--steel-bg);
+    border: 1px solid var(--steel-bd);
+    color: var(--steel);
+  }
+
+  .improve-tag {
+    font-size: 0.65rem;
+    font-family: 'Sora', sans-serif;
+    padding: 0.2rem 0.55rem;
+    border-radius: 4px;
+    background: #FEF3F2;
+    border: 1px solid #FECDCA;
+    color: #B03030;
+  }
+
+  .feedback-note {
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 0.55rem;
+    font-weight: 300;
+    font-style: italic;
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 5rem 4rem;
+  }
+
+  .section-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .section-eyebrow {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--steel);
+    margin-bottom: 0.65rem;
+  }
+
+  .section-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-bottom: 0.85rem;
+  }
+
+  .section-body {
+    font-size: 0.95rem;
+    color: var(--text-sub);
+    font-weight: 300;
+    max-width: 540px;
+    line-height: 1.8;
+  }
+
+  /* ── PROBLEM ── */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-top: 2.75rem;
+  }
+
+  .problem-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.4rem 1.4rem 1.5rem;
+  }
+
+  .problem-icon {
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .problem-card h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 0.45rem;
+  }
+
+  .problem-card p {
+    font-size: 0.82rem;
+    color: var(--text-sub);
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  /* ── FEATURE BLOCK ── */
+  .feature-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3.5rem;
+    align-items: center;
+    margin-top: 3rem;
+  }
+
+  .feature-block.reverse { direction: rtl; }
+  .feature-block.reverse > * { direction: ltr; }
+
+  .feature-tag {
+    display: inline-block;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--steel);
+    background: var(--steel-bg);
+    border: 1px solid var(--steel-bd);
+    border-radius: 4px;
+    padding: 0.2rem 0.6rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .feature-text h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1.3;
+    margin-bottom: 0.85rem;
+    letter-spacing: -0.015em;
+  }
+
+  .feature-text p {
+    font-size: 0.9rem;
+    color: var(--text-sub);
+    line-height: 1.8;
+    font-weight: 300;
+    margin-bottom: 1.1rem;
+  }
+
+  .feature-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .feature-list li {
+    font-size: 0.82rem;
+    color: var(--text-sub);
+    font-weight: 300;
+    padding-left: 1.1rem;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  .feature-list li::before {
+    content: '–';
+    position: absolute;
+    left: 0;
+    color: var(--steel);
+    font-weight: 500;
+  }
+
+  /* ── VIDEO WRAP ── */
+  .video-wrap {
+    background: var(--navy);
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 16/9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(28,43,69,0.12);
+  }
+
+  .video-placeholder-inner {
+    text-align: center;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .video-placeholder-inner svg {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0.6rem;
+    opacity: 0.5;
+  }
+
+  .video-placeholder-inner p {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── FEEDBACK SECTION ── */
+  .feedback-section-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3.5rem;
+    align-items: start;
+    margin-top: 3rem;
+  }
+
+  .feedback-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .feedback-card-header {
+    background: var(--bg-subtle);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1.2rem;
+    font-family: 'Sora', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--navy);
+  }
+
+  .feedback-card-body {
+    padding: 1.2rem;
+  }
+
+  .dim-row {
+    margin-bottom: 0.85rem;
+  }
+
+  .dim-label {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--navy);
+    margin-bottom: 0.25rem;
+  }
+
+  .dim-note {
+    font-size: 0.68rem;
+    color: var(--text-sub);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  .feedback-improve {
+    background: #FEF8F8;
+    border: 1px solid #FECDCA;
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    margin-top: 0.5rem;
+  }
+
+  .feedback-improve-title {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: #B03030;
+    margin-bottom: 0.5rem;
+  }
+
+  .feedback-improve ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .feedback-improve ul li {
+    font-size: 0.72rem;
+    color: #7A2424;
+    font-weight: 300;
+    line-height: 1.55;
+    padding-left: 0.85rem;
+    position: relative;
+  }
+
+  .feedback-improve ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    font-size: 0.62rem;
+    color: #D14343;
+  }
+
+  /* ── STEPS ── */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-top: 2.75rem;
+    position: relative;
+  }
+
+  .steps::before {
+    content: '';
+    position: absolute;
+    top: 1.5rem;
+    left: 13%;
+    right: 13%;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+  }
+
+  .step-circle {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.9rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-circle svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--steel);
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .step h4 {
+    font-family: 'Sora', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--navy);
+    margin-bottom: 0.35rem;
+  }
+
+  .step p {
+    font-size: 0.78rem;
+    color: var(--text-sub);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* ── SPEC STRIP ── */
+  .spec-strip {
+    background: var(--navy);
+    padding: 2.75rem 4rem;
+  }
+
+  .spec-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    text-align: center;
+  }
+
+  .spec-item .spec-num {
+    font-family: 'Sora', sans-serif;
+    font-size: 1.9rem;
+    font-weight: 600;
+    color: var(--steel-lt);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+
+  .spec-item p {
+    font-size: 0.78rem;
+    color: #8FA3BC;
+    font-weight: 300;
+    line-height: 1.55;
+  }
+
+  /* ── CTA ── */
+  .cta-section {
+    background: var(--steel-bg);
+    border-top: 1px solid var(--steel-bd);
+    border-bottom: 1px solid var(--steel-bd);
+    padding: 5rem 4rem;
+    text-align: center;
+  }
+
+  .cta-section h2 {
+    font-family: 'Sora', sans-serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: -0.02em;
+    margin-bottom: 0.9rem;
+    line-height: 1.25;
+  }
+
+  .cta-section p {
+    font-size: 0.95rem;
+    color: var(--text-sub);
+    max-width: 460px;
+    margin: 0 auto 2.25rem;
+    font-weight: 300;
+    line-height: 1.8;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 1.75rem 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+  }
+
+  footer p { font-size: 0.76rem; color: var(--muted); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 860px) {
+    header { padding: 1.1rem 1.5rem; }
+    header nav { display: none; }
+    .hero { grid-template-columns: 1fr; padding: 3rem 1.5rem; gap: 2.5rem; }
+    .hero h1 { font-size: 2rem; }
+    .section { padding: 3.5rem 1.5rem; }
+    .problem-grid { grid-template-columns: 1fr; }
+    .feature-block, .feature-block.reverse { grid-template-columns: 1fr; direction: ltr; gap: 2rem; }
+    .feedback-section-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .steps { grid-template-columns: 1fr 1fr; }
+    .steps::before { display: none; }
+    .spec-grid { grid-template-columns: repeat(2, 1fr); }
+    .spec-strip { padding: 2.5rem 1.5rem; }
+    .cta-section { padding: 3.5rem 1.5rem; }
+    footer { flex-direction: column; gap: 0.4rem; padding: 1.5rem; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Mock<span>Mate</span></div>
+  <nav>
+    <a href="#problem" class="lang-zh" style="display:none">為什麼需要練習</a>
+    <a href="#problem" class="lang-en" style="display:none">Why Practice</a>
+    <a href="#how-it-works" class="lang-zh" style="display:none">如何運作</a>
+    <a href="#how-it-works" class="lang-en" style="display:none">How It Works</a>
+    <a href="#feedback" class="lang-zh" style="display:none">回饋報告</a>
+    <a href="#feedback" class="lang-en" style="display:none">Feedback Report</a>
+    <a href="#steps" class="lang-zh" style="display:none">使用流程</a>
+    <a href="#steps" class="lang-en" style="display:none">Process</a>
+    <a href="#contact" class="lang-zh" style="display:none">開始練習</a>
+    <a href="#contact" class="lang-en" style="display:none">Get Started</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section>
+  <div class="hero">
+    <div>
+      <p class="hero-eyebrow lang-zh" style="display:none">AI 語音模擬面試平台</p>
+      <p class="hero-eyebrow lang-en" style="display:none">AI Mock Interview Platform</p>
+      <h1 class="lang-zh" style="display:none">在正式面試前，<br>先<em>練習一次</em></h1>
+      <h1 class="lang-en" style="display:none">Practice the Interview,<br>Before It <em>Counts</em></h1>
+      <p class="hero-sub lang-zh" style="display:none">上傳你的履歷，與 AI 面試官進行一場完整的語音模擬面試。結束後取得具體的八面向回饋報告，找出你還沒察覺的弱點。</p>
+      <p class="hero-sub lang-en" style="display:none">Upload your resume and complete a full voice interview with an AI interviewer. Afterward, receive a detailed feedback report across eight dimensions — surfacing weaknesses you may not have noticed on your own.</p>
+      <div class="cta-group">
+        <a href="#contact" class="btn-primary lang-zh" style="display:none">開始練習</a>
+        <a href="#contact" class="btn-primary lang-en" style="display:none">Start Practicing</a>
+        <a href="#how-it-works" class="btn-ghost lang-zh" style="display:none">了解如何運作</a>
+        <a href="#how-it-works" class="btn-ghost lang-en" style="display:none">See How It Works</a>
+      </div>
+    </div>
+
+    <!-- FEEDBACK PREVIEW PANEL -->
+    <div class="feedback-preview">
+      <div class="preview-topbar">
+        <div class="preview-dot"></div>
+        <div class="preview-dot"></div>
+        <div class="preview-dot"></div>
+        <span class="preview-title-bar lang-zh" style="display:none">面試回饋報告 — 本次模擬結果</span>
+        <span class="preview-title-bar lang-en" style="display:none">Interview Feedback Report — This Session</span>
+      </div>
+      <div class="feedback-body">
+        <div class="feedback-header lang-zh" style="display:none">八面向回饋（示意）</div>
+        <div class="feedback-header lang-en" style="display:none">Feedback Across Eight Dimensions (Sample)</div>
+
+        <div class="score-row-item">
+          <span class="score-label-text lang-zh" style="display:none">整體評價</span>
+          <span class="score-label-text lang-en" style="display:none">Overall</span>
+          <span class="score-comment lang-zh" style="display:none">整體回答思路清晰，自我介紹具條理，但部分問題停留在描述層次。</span>
+          <span class="score-comment lang-en" style="display:none">Responses were generally clear and well-organized, though some answers stayed at a surface level.</span>
+        </div>
+        <div class="score-row-item">
+          <span class="score-label-text lang-zh" style="display:none">表達清晰度</span>
+          <span class="score-label-text lang-en" style="display:none">Clarity</span>
+          <span class="score-comment lang-zh" style="display:none">語句結構完整，邏輯清楚，語速穩定，易於理解。</span>
+          <span class="score-comment lang-en" style="display:none">Sentence structure was solid, logic was easy to follow, and pacing stayed steady throughout.</span>
+        </div>
+        <div class="score-row-item">
+          <span class="score-label-text lang-zh" style="display:none">內容完整性</span>
+          <span class="score-label-text lang-en" style="display:none">Completeness</span>
+          <span class="score-comment lang-zh" style="display:none">主要問題均有回應，但離職原因與薪資期望的回答較為簡短。</span>
+          <span class="score-comment lang-en" style="display:none">All core questions were addressed, though answers on reason for leaving and salary expectations were brief.</span>
+        </div>
+        <div class="score-row-item">
+          <span class="score-label-text lang-zh" style="display:none">具體舉例</span>
+          <span class="score-label-text lang-en" style="display:none">Specificity</span>
+          <span class="score-comment lang-zh" style="display:none">帶領團隊的回答未說明人數與具體成果，建議用 STAR 原則重組。</span>
+          <span class="score-comment lang-en" style="display:none">The team-leadership example lacked team size and concrete outcomes — worth restructuring with the STAR method.</span>
+        </div>
+        <div class="score-row-item">
+          <span class="score-label-text lang-zh" style="display:none">職涯邏輯</span>
+          <span class="score-label-text lang-en" style="display:none">Career Logic</span>
+          <span class="score-comment lang-zh" style="display:none">離職原因與未來規劃的關聯可說得更清楚，目前邏輯連結較薄弱。</span>
+          <span class="score-comment lang-en" style="display:none">The link between the reason for leaving and future plans could be tighter — the connection currently feels thin.</span>
+        </div>
+        <div class="score-row-item">
+          <span class="score-label-text lang-zh" style="display:none">面試官觀察</span>
+          <span class="score-label-text lang-en" style="display:none">Interviewer's Read</span>
+          <span class="score-comment lang-zh" style="display:none">回答「挑戰性工作」時有短暫停頓，可能讓面試官感知到猶豫。</span>
+          <span class="score-comment lang-en" style="display:none">A brief pause before answering the "challenging project" question may have read as hesitation.</span>
+        </div>
+        <div class="score-row-item">
+          <span class="score-label-text lang-zh" style="display:none">加分表現</span>
+          <span class="score-label-text lang-en" style="display:none">Standout Moment</span>
+          <span class="score-comment lang-zh" style="display:none">主動提及跨部門協作經驗，並點出具體的溝通障礙與解決方式。</span>
+          <span class="score-comment lang-en" style="display:none">Volunteered a cross-team collaboration example, naming a specific obstacle and how it was resolved.</span>
+        </div>
+        <div class="score-row-item">
+          <span class="score-label-text lang-zh" style="display:none">改善建議</span>
+          <span class="score-label-text lang-en" style="display:none">To Improve</span>
+          <span class="score-comment lang-zh" style="display:none">準備 2–3 個 STAR 格式事例；離職原因改用正向拉力陳述。</span>
+          <span class="score-comment lang-en" style="display:none">Prepare two to three STAR-format examples in advance; reframe the reason for leaving around what you're moving toward, not away from.</span>
+        </div>
+
+        <p class="feedback-note lang-zh" style="display:none">報告自動生成，含完整對話逐字稿</p>
+        <p class="feedback-note lang-en" style="display:none">Auto-generated report, includes the full interview transcript</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="section">
+    <p class="section-eyebrow lang-zh" style="display:none">為什麼需要練習</p>
+    <p class="section-eyebrow lang-en" style="display:none">Why Practice</p>
+    <h2 class="section-title lang-zh" style="display:none">多數求職者在正式面試前，<br>從未有機會練習</h2>
+    <h2 class="section-title lang-en" style="display:none">Most Candidates Walk Into Interviews<br>Having Never Rehearsed</h2>
+    <p class="section-body lang-zh" style="display:none">面試是一種技能，而不是天賦。但很少人有機會在安全的環境下反覆練習，直到真正上場才發現自己的問題。</p>
+    <p class="section-body lang-en" style="display:none">Interviewing is a skill, not a talent — yet few candidates get to rehearse it in a low-stakes setting. Most only discover their weak points once it's too late to fix them.</p>
+
+    <div class="problem-grid">
+      <div class="problem-card">
+        <span class="problem-icon">🎯</span>
+        <h3 class="lang-zh" style="display:none">練習機會難找</h3>
+        <h3 class="lang-en" style="display:none">Practice Partners Are Hard to Find</h3>
+        <p class="lang-zh" style="display:none">找親友模擬面試，對方通常不了解 HR 的提問邏輯，也給不出專業回饋。有價值的練習機會很難取得。</p>
+        <p class="lang-en" style="display:none">Friends and family rarely understand how HR actually structures questions, and can't offer professional feedback. Meaningful practice is simply hard to come by.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-icon">🔍</span>
+        <h3 class="lang-zh" style="display:none">不知道自己哪裡弱</h3>
+        <h3 class="lang-en" style="display:none">Blind Spots Go Unnoticed</h3>
+        <p class="lang-zh" style="display:none">答完覺得還可以，但 HR 沒有回音。不清楚是回答內容不夠具體、邏輯不清，還是哪個環節出了問題。</p>
+        <p class="lang-en" style="display:none">An answer can feel fine in the moment, then go nowhere. Without a response from HR, there's no way to tell whether it was the substance, the logic, or something else entirely.</p>
+      </div>
+      <div class="problem-card">
+        <span class="problem-icon">📋</span>
+        <h3 class="lang-zh" style="display:none">面試後沒有具體回饋</h3>
+        <h3 class="lang-en" style="display:none">Real Interviews Rarely Come With Feedback</h3>
+        <p class="lang-zh" style="display:none">正式面試結束後，鮮少能拿到具體的改善建議。每一次面試的成長，只能靠自己猜測與摸索。</p>
+        <p class="lang-en" style="display:none">Once a formal interview ends, specific feedback almost never follows. Any improvement has to come from guesswork.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="section">
+    <p class="section-eyebrow lang-zh" style="display:none">如何運作</p>
+    <p class="section-eyebrow lang-en" style="display:none">How It Works</p>
+    <h2 class="section-title lang-zh" style="display:none">上傳你的履歷，<br>AI 面試官針對你的經歷提問</h2>
+    <h2 class="section-title lang-en" style="display:none">Upload Your Resume —<br>The AI Interviewer Takes It From There</h2>
+
+    <!-- Feature 1 -->
+    <div class="feature-block">
+      <div class="feature-text">
+        <span class="feature-tag lang-zh" style="display:none">語音面試</span>
+        <span class="feature-tag lang-en" style="display:none">Voice Interview</span>
+        <h3 class="lang-zh" style="display:none">真實的語音對話，<br>不是填表單</h3>
+        <h3 class="lang-en" style="display:none">A Real Conversation,<br>Not a Form to Fill Out</h3>
+        <p class="lang-zh" style="display:none">MockMate 以語音進行，就像真正的面試一樣。AI 面試官根據你上傳的履歷即時生成問題，並在你的回答不夠具體時，自然地追問下去。</p>
+        <p class="lang-en" style="display:none">MockMate runs entirely by voice, the way an actual interview would. The AI interviewer builds questions from your resume in real time, and follows up naturally whenever an answer needs more detail.</p>
+        <ul class="feature-list">
+          <li class="lang-zh" style="display:none">AI 面試官依你的履歷客製化提問，不是固定題庫</li>
+          <li class="lang-en" style="display:none">Questions are generated from your resume, not pulled from a fixed bank</li>
+          <li class="lang-zh" style="display:none">涵蓋自我介紹、工作經歷、離職原因、職涯規劃、薪資期望等必問題目</li>
+          <li class="lang-en" style="display:none">Covers the questions every interview asks: your background, work history, reason for leaving, career plans, salary expectations</li>
+          <li class="lang-zh" style="display:none">靜音偵測自動送出，不需手動操作，專注在回答即可</li>
+          <li class="lang-en" style="display:none">Silence detection submits your answer automatically — no buttons to press, just talk</li>
+          <li class="lang-zh" style="display:none">最多 20 輪對話，完整模擬真實面試節奏</li>
+          <li class="lang-en" style="display:none">Up to 20 exchanges, paced to match a real interview</li>
+        </ul>
+      </div>
+      <div>
+        <div class="video-wrap">
+          <iframe
+            src="https://www.youtube.com/embed/BV31V3b-UgI"
+            title="MockMate Demo"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            style="width:100%; height:100%; position:absolute; top:0; left:0;">
+          </iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- FEEDBACK DETAIL -->
+<section id="feedback">
+  <div class="section">
+    <p class="section-eyebrow lang-zh" style="display:none">回饋報告</p>
+    <p class="section-eyebrow lang-en" style="display:none">Feedback Report</p>
+    <h2 class="section-title lang-zh" style="display:none">面試結束後，<br>立即取得八面向具體回饋</h2>
+    <h2 class="section-title lang-en" style="display:none">The Moment It Ends,<br>You Get Feedback Across Eight Dimensions</h2>
+    <p class="section-body lang-zh" style="display:none">不是籠統的「表現不錯」，而是每個面向有獨立評語、具體說明，以及至少三點可執行的改善方向。</p>
+    <p class="section-body lang-en" style="display:none">Not a generic "well done." Each dimension gets its own specific note, plus at least three concrete things to work on.</p>
+
+    <div class="feedback-section-grid">
+      <div class="feedback-card">
+        <div class="feedback-card-header lang-zh" style="display:none">八面向回饋報告示意</div>
+        <div class="feedback-card-header lang-en" style="display:none">Sample Feedback Report</div>
+        <div class="feedback-card-body">
+          <div class="dim-row">
+            <div class="dim-label lang-zh" style="display:none">整體評價</div>
+            <div class="dim-label lang-en" style="display:none">Overall</div>
+            <p class="dim-note lang-zh" style="display:none">整體回答思路清晰，自我介紹具有條理，但部分問題仍停留在描述層次，缺少具體事例支撐。</p>
+            <p class="dim-note lang-en" style="display:none">Responses were clear and well-organized overall, but some answers stayed descriptive rather than backed by specific examples.</p>
+          </div>
+          <div class="dim-row">
+            <div class="dim-label lang-zh" style="display:none">具體舉例能力</div>
+            <div class="dim-label lang-en" style="display:none">Use of Examples</div>
+            <p class="dim-note lang-zh" style="display:none">回答「帶領團隊」時未說明人數、時程與具體成果，建議用 STAR 原則重新組織。</p>
+            <p class="dim-note lang-en" style="display:none">The team-leadership answer left out team size, timeline, and concrete results — restructuring it with the STAR method would help.</p>
+          </div>
+          <div class="dim-row">
+            <div class="dim-label lang-zh" style="display:none">職涯邏輯一致性</div>
+            <div class="dim-label lang-en" style="display:none">Career Narrative</div>
+            <p class="dim-note lang-zh" style="display:none">離職原因與未來規劃的關聯可以說得更清楚，目前兩者之間的邏輯連結較薄弱。</p>
+            <p class="dim-note lang-en" style="display:none">The connection between the reason for leaving and future plans needs to be clearer — right now the two feel loosely tied together.</p>
+          </div>
+          <div class="dim-row">
+            <div class="dim-label lang-zh" style="display:none">面試官可能的觀察</div>
+            <div class="dim-label lang-en" style="display:none">What an Interviewer Might Notice</div>
+            <p class="dim-note lang-zh" style="display:none">回答壓力情境時出現多次「應該」、「大概」等模糊用詞，可能讓面試官感知到不確定感。</p>
+            <p class="dim-note lang-en" style="display:none">Hedging language — "probably," "I think" — came up repeatedly under pressure questions, which can read as uncertainty.</p>
+          </div>
+          <div class="feedback-improve">
+            <div class="feedback-improve-title lang-zh" style="display:none">改善建議（節錄）</div>
+            <div class="feedback-improve-title lang-en" style="display:none">To Improve (Selected)</div>
+            <ul>
+              <li class="lang-zh" style="display:none">準備 2–3 個 STAR 格式的具體事例，可用於多題</li>
+              <li class="lang-en" style="display:none">Prepare two to three STAR-format examples that can flex across multiple questions</li>
+              <li class="lang-zh" style="display:none">離職原因改用「正向拉力」陳述，而非「負向推力」</li>
+              <li class="lang-en" style="display:none">Frame the reason for leaving around what you're moving toward, not what you're escaping</li>
+              <li class="lang-zh" style="display:none">職涯規劃加入對應徵職位的連結，說明為何是此公司</li>
+              <li class="lang-en" style="display:none">Tie career plans explicitly to the role — explain why this company, specifically</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="margin-bottom: 1.5rem;">
+          <h3 style="font-family:'Sora',sans-serif; font-size:1.1rem; font-weight:600; color:var(--navy); margin-bottom:0.6rem; letter-spacing:-0.01em; display:none" class="lang-zh">報告同時包含</h3>
+          <h3 style="font-family:'Sora',sans-serif; font-size:1.1rem; font-weight:600; color:var(--navy); margin-bottom:0.6rem; letter-spacing:-0.01em; display:none" class="lang-en">The Report Also Includes</h3>
+          <div style="display:flex; flex-direction:column; gap:0.75rem;">
+            <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+              <span style="color:var(--steel); font-size:0.9rem; margin-top:1px;">✓</span>
+              <div>
+                <div style="font-size:0.85rem; font-weight:500; color:var(--navy); font-family:'Sora',sans-serif; margin-bottom:0.2rem; display:none" class="lang-zh">完整對話逐字稿</div>
+                <div style="font-size:0.85rem; font-weight:500; color:var(--navy); font-family:'Sora',sans-serif; margin-bottom:0.2rem; display:none" class="lang-en">Full Transcript</div>
+                <p style="font-size:0.78rem; color:var(--text-sub); font-weight:300; line-height:1.6; display:none" class="lang-zh">可對照每一輪 AI 的提問與你的回答，找出具體哪一題出了問題。</p>
+                <p style="font-size:0.78rem; color:var(--text-sub); font-weight:300; line-height:1.6; display:none" class="lang-en">Review every question and answer side by side to pinpoint exactly where a response fell short.</p>
+              </div>
+            </div>
+            <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+              <span style="color:var(--steel); font-size:0.9rem; margin-top:1px;">✓</span>
+              <div>
+                <div style="font-size:0.85rem; font-weight:500; color:var(--navy); font-family:'Sora',sans-serif; margin-bottom:0.2rem; display:none" class="lang-zh">加分表現標記</div>
+                <div style="font-size:0.85rem; font-weight:500; color:var(--navy); font-family:'Sora',sans-serif; margin-bottom:0.2rem; display:none" class="lang-en">Standout Moments Flagged</div>
+                <p style="font-size:0.78rem; color:var(--text-sub); font-weight:300; line-height:1.6; display:none" class="lang-zh">面試中特別亮眼的回答會被特別標示，確認自己的優勢並在正式面試中保留。</p>
+                <p style="font-size:0.78rem; color:var(--text-sub); font-weight:300; line-height:1.6; display:none" class="lang-en">Strong answers are flagged so you know what to keep doing in the real interview.</p>
+              </div>
+            </div>
+            <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+              <span style="color:var(--steel); font-size:0.9rem; margin-top:1px;">✓</span>
+              <div>
+                <div style="font-size:0.85rem; font-weight:500; color:var(--navy); font-family:'Sora',sans-serif; margin-bottom:0.2rem; display:none" class="lang-zh">可複製的報告文字</div>
+                <div style="font-size:0.85rem; font-weight:500; color:var(--navy); font-family:'Sora',sans-serif; margin-bottom:0.2rem; display:none" class="lang-en">Copy-Ready Report</div>
+                <p style="font-size:0.78rem; color:var(--text-sub); font-weight:300; line-height:1.6; display:none" class="lang-zh">完整報告可一鍵複製，自行存檔或帶入下次練習做對比。</p>
+                <p style="font-size:0.78rem; color:var(--text-sub); font-weight:300; line-height:1.6; display:none" class="lang-en">Copy the full report in one click to save it or compare against your next attempt.</p>
+              </div>
+            </div>
+            <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+              <span style="color:var(--steel); font-size:0.9rem; margin-top:1px;">✓</span>
+              <div>
+                <div style="font-size:0.85rem; font-weight:500; color:var(--navy); font-family:'Sora',sans-serif; margin-bottom:0.2rem; display:none" class="lang-zh">隱私保護設計</div>
+                <div style="font-size:0.85rem; font-weight:500; color:var(--navy); font-family:'Sora',sans-serif; margin-bottom:0.2rem; display:none" class="lang-en">Built for Privacy</div>
+                <p style="font-size:0.78rem; color:var(--text-sub); font-weight:300; line-height:1.6; display:none" class="lang-zh">履歷與對話僅存於本次 session，頁面關閉後資料即清除，不留伺服器紀錄。</p>
+                <p style="font-size:0.78rem; color:var(--text-sub); font-weight:300; line-height:1.6; display:none" class="lang-en">Your resume and conversation exist only for the session — close the tab, and nothing is left on any server.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="section-divider">
+
+<!-- STEPS -->
+<section id="steps">
+  <div class="section">
+    <p class="section-eyebrow lang-zh" style="display:none">使用流程</p>
+    <p class="section-eyebrow lang-en" style="display:none">Process</p>
+    <h2 class="section-title lang-zh" style="display:none">四步驟完成一次完整練習</h2>
+    <h2 class="section-title lang-en" style="display:none">Four Steps, One Complete Practice Run</h2>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-circle">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <h4 class="lang-zh" style="display:none">上傳你的履歷</h4>
+        <h4 class="lang-en" style="display:none">Upload Your Resume</h4>
+        <p class="lang-zh" style="display:none">支援 JSON 或 PDF 格式，上傳後確認摘要無誤即可</p>
+        <p class="lang-en" style="display:none">JSON or PDF — confirm the summary looks right and you're set</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">
+          <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </div>
+        <h4 class="lang-zh" style="display:none">語音面試開始</h4>
+        <h4 class="lang-en" style="display:none">The Interview Begins</h4>
+        <p class="lang-zh" style="display:none">AI 依你的履歷提問，用麥克風回答，最多 20 輪對話</p>
+        <p class="lang-en" style="display:none">The AI asks, you answer by voice — up to 20 exchanges</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">
+          <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <h4 class="lang-zh" style="display:none">取得回饋報告</h4>
+        <h4 class="lang-en" style="display:none">Get Your Feedback</h4>
+        <p class="lang-zh" style="display:none">八面向評語 + 具體改善建議，附完整逐字稿</p>
+        <p class="lang-en" style="display:none">Eight dimensions of feedback, concrete next steps, full transcript included</p>
+      </div>
+      <div class="step">
+        <div class="step-circle">
+          <svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </div>
+        <h4 class="lang-zh" style="display:none">調整後再練一次</h4>
+        <h4 class="lang-en" style="display:none">Adjust, Then Go Again</h4>
+        <p class="lang-zh" style="display:none">對照報告改善答案，重新上傳或使用相同履歷再練習</p>
+        <p class="lang-en" style="display:none">Apply what you learned and run it back — same resume or a new one</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SPEC STRIP -->
+<div class="spec-strip">
+  <div class="spec-grid">
+    <div class="spec-item">
+      <div class="spec-num">2</div>
+      <p class="lang-zh" style="display:none">支援語言<br>中文、英文面試皆可練習</p>
+      <p class="lang-en" style="display:none">Languages<br>Practice in Chinese or English</p>
+    </div>
+    <div class="spec-item">
+      <div class="spec-num">8</div>
+      <p class="lang-zh" style="display:none">面向具體回饋<br>面試結束後即時產出</p>
+      <p class="lang-en" style="display:none">Feedback Dimensions<br>Generated the moment you finish</p>
+    </div>
+    <div class="spec-item">
+      <div class="spec-num">20</div>
+      <p class="lang-zh" style="display:none">輪對話上限<br>完整模擬真實面試節奏</p>
+      <p class="lang-en" style="display:none">Max Exchanges<br>Paced like a real interview</p>
+    </div>
+    <div class="spec-item">
+      <div class="spec-num">0</div>
+      <p class="lang-zh" style="display:none">資料落地<br>履歷與對話不存伺服器</p>
+      <p class="lang-en" style="display:none">Data Retained<br>Nothing saved after the session ends</p>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section id="contact" class="cta-section">
+  <h2 class="lang-zh" style="display:none">準備好練習了嗎？</h2>
+  <h2 class="lang-en" style="display:none">Ready to Practice?</h2>
+  <p class="lang-zh" style="display:none">有任何問題、合作洽詢，或想了解系統技術細節，歡迎直接來信。</p>
+  <p class="lang-en" style="display:none">For questions, collaboration inquiries, or a closer look at how the system works, feel free to reach out directly.</p>
+  <div class="cta-group" style="justify-content:center;">
+    <a href="mailto:your@email.com" class="btn-primary lang-zh" style="display:none">寄信給我們</a>
+    <a href="mailto:your@email.com" class="btn-primary lang-en" style="display:none">Email Us</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p class="lang-zh" style="display:none">© 2026 MockMate &nbsp;·&nbsp; AI 語音模擬面試平台</p>
+  <p class="lang-en" style="display:none">© 2026 MockMate &nbsp;·&nbsp; AI Mock Interview Platform</p>
+  <p>Powered by Azure Speech Services &nbsp;·&nbsp; Anthropic Claude</p>
+</footer>
+
+<script>
+  var TITLES = {
+    zh: 'MockMate — AI 語音模擬面試，練習後取得具體回饋',
+    en: 'MockMate — AI Mock Interviews with Actionable Feedback'
+  };
+
+  function setLang(lang) {
+    document.documentElement.setAttribute('lang', lang === 'zh' ? 'zh-TW' : 'en');
+    document.title = TITLES[lang];
+
+    document.querySelectorAll('.lang-zh').forEach(function (el) {
+      el.style.display = (lang === 'zh') ? '' : 'none';
+    });
+    document.querySelectorAll('.lang-en').forEach(function (el) {
+      el.style.display = (lang === 'en') ? '' : 'none';
+    });
+  }
+
+  function detectAndSetLang() {
+    var browserLang = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+    var initialLang = browserLang.indexOf('zh') === 0 ? 'zh' : 'en';
+    setLang(initialLang);
+  }
+
+  detectAndSetLang();
+</script>
+
+</body>
+</html>
